@@ -1,0 +1,29 @@
+{% extends 'layout.html' %}
+{% block content %}
+<h2>📊 Scrape Results</h2>
+{% if data %}
+<div class="table-responsive">
+    <table class="table table-bordered table-dark table-hover">
+        <thead>
+            <tr>
+                {% for head in headers %}
+                <th>{{ head }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in data %}
+            <tr>
+                {% for head in headers %}
+                <td>{{ row[head] }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p>No data available.</p>
+{% endif %}
+<a href="{{ url_for('index') }}" class="btn btn-secondary mt-3">← Back to Home</a>
+{% endblock %}

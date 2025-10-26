@@ -1,0 +1,7 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="d-grid gap-3 text-center">
+    <a href="{{ url_for('video_scrape') }}" class="btn btn-danger btn-lg">🎬 Scrape Videos</a>
+    <a href="{{ url_for('channel_scrape') }}" class="btn btn-danger btn-lg">👤 Scrape Channels</a>
+</div>
+{% endblock %}
