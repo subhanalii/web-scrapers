@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Binance Market Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { background-color: #111; color: #eee; }
+    .table-dark th a { color: #ffc107; text-decoration: none; }
+    .form-select, .form-control { background-color: #222; color: #fff; }
+    .arrow { font-size: 0.8rem; }
+    .pagination .page-link { background-color: #222; color: #fff; }
+    .pagination .active .page-link { background-color: #ffc107; color: #000; }
+    canvas { width: 100%; height: 25px; }
+  </style>
+</head>
+<body>
+<div class="container my-4">
+  <h2 class="text-warning">📈 Binance Market Scraper</h2>
+
+  <!-- Export Buttons -->
+  <div class="mb-3 d-flex gap-3">
+    <a href="/download/csv" class="btn btn-outline-warning btn-sm">Download CSV</a>
+    <a href="/download/sqlite" class="btn btn-outline-light btn-sm">Download SQLite</a>
+  </div>
+
+  <!-- Filter -->
+  <form class="row g-3 mb-4">
+    <div class="col-md-3">
+      <select class="form-select" name="quote" onchange="this.form.submit()">
+        {% for q in ['USDT', 'BUSD', 'USDC', 'BTC', 'ETH'] %}
+          <option value="{{ q }}" {% if q == quote %}selected{% endif %}>{{ q }} Pairs</option>
+        {% endfor %}
+      </select>
+    </div>
+  </form>
+
+  <!-- Sections -->
+  <div class="row mb-4">
+    {% for title, coins, path in [
+      ('🔥 Hot Coins', hot_coins, 'hot'),
+      ('🆕 New Listings', new_listings, 'new'),
+      ('🚀 Top Gainers', top_gainers, 'gainers'),
+      ('💰 Top Volume', top_volume, 'volume')] %}
+    <div class="col-md-3">
+      <h5 class="text-info">{{ title }} <a href="/more/{{ path }}?quote={{ quote }}" class="text-secondary">(more)</a></h5>
+      <ul class="list-group">
+        {% for coin in coins %}
+        <li class="list-group-item bg-dark text-white d-flex justify-content-between">
+          {{ coin.base }}
+          {% if path == 'gainers' %}<span>{{ coin.priceChangePercent }}%</span>{% endif %}
+          {% if path == 'volume' %}<span>{{ coin.quoteVolume | format_volume }}</span>{% endif %}
+          {% if path == 'hot' %}<span>{{ coin.marketCap | format_market_cap }}</span>{% endif %}
+          {% if path == 'new' %}<span>{{ coin.quote }}</span>{% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Main Table -->
+  <h4 class="text-light mt-3 mb-2">📃 All Coins</h4>
+  <table class="table table-dark table-hover table-bordered">
+    <thead>
+      <tr>
+        {% for key, label in {
+          'base': 'Name',
+          'lastPrice': 'Price',
+          'priceChangePercent': 'Change %',
+          'quoteVolume': 'Volume',
+          'marketCap': 'Market Cap'}.items() %}
+        <th>
+          <a href="?quote={{ quote }}&sort={{ key }}&order={{ 'asc' if sort_by != key or order == 'desc' else 'desc' }}&page={{ page }}">
+            {{ label }}
+            {% if sort_by == key %}
+              <span class="arrow">{{ '▲' if order == 'asc' else '▼' }}</span>
+            {% endif %}
+          </a>
+        </th>
+        {% endfor %}
+        <th>Sparkline</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for coin in coins %}
+      <tr>
+        <td>{{ coin.base }}</td>
+        <td>${{ "%.4f"|format(coin.lastPrice|float) }}</td>
+        <td class="{{ 'text-success' if coin.priceChangePercent|float >= 0 else 'text-danger' }}">
+          {{ coin.priceChangePercent }}%
+        </td>
+        <td>{{ coin.quoteVolume | format_volume }}</td>
+        <td>{{ coin.marketCap | format_market_cap }}</td>
+        <td><canvas id="sparkline{{ loop.index0 }}"></canvas></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Pagination -->
+  <nav class="mt-4">
+    <ul class="pagination justify-content-center">
+      {% if page > 1 %}
+        <li class="page-item">
+          <a class="page-link" href="?quote={{ quote }}&sort={{ sort_by }}&order={{ order }}&page={{ page - 1 }}">«</a>
+        </li>
+      {% endif %}
+      {% for p in range(1, total_pages + 1) %}
+        <li class="page-item {% if p == page %}active{% endif %}">
+          <a class="page-link" href="?quote={{ quote }}&sort={{ sort_by }}&order={{ order }}&page={{ p }}">{{ p }}</a>
+        </li>
+      {% endfor %}
+      {% if page < total_pages %}
+        <li class="page-item">
+          <a class="page-link" href="?quote={{ quote }}&sort={{ sort_by }}&order={{ order }}&page={{ page + 1 }}">»</a>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+</div>
+
+<!-- Sparkline data injection -->
+<script id="sparkline-data" type="application/json">
+  {{ coins | tojson | safe }}
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const raw = document.getElementById("sparkline-data").textContent;
+    const data = JSON.parse(raw);
+
+    data.forEach((coin, i) => {
+      if (!coin.sparkline || !coin.sparkline.length) return;
+      const ctx = document.getElementById(`sparkline${i}`)?.getContext("2d");
+      if (!ctx) return;
+
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: coin.sparkline.map((_, i) => i),
+          datasets: [{
+            data: coin.sparkline,
+            borderColor: 'lime',
+            tension: 0.3,
+            borderWidth: 1,
+            pointRadius: 0
+          }]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: { x: { display: false }, y: { display: false } },
+          responsive: true
+        }
+      });
+    });
+  });
+</script>
+</body>
+</html>
