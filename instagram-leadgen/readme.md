@@ -1,4 +1,4 @@
-# 🔍 Instagram Email Scraper (Bing + Selenium)
+# 🔍 Instagram  Scraper (Bing + Selenium)
 
 This is a Python-based web automation script that:
 
