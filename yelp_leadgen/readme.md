@@ -42,7 +42,7 @@ In this demo, a few sample businesses were scraped for demonstration purposes. I
 
 1. Clone this repository:
 
-git clone https://github.com/yourusername/yelp-scraper.git
+git clone https://github.com/subhanalii/yelp-scraper.git
 cd yelp-scraper
 Update configuration paths in the script:
 
