@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2>🔄 Scraping in Progress</h2>
+<div id="status">Starting...</div>
+<script>
+    function updateProgress() {
+        fetch('/get_progress')
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "done") {
+                    document.getElementById("status").innerHTML = "✅ Scraping complete. <a href='/results/" + data.type + "' class='btn btn-success mt-3'>View Results</a>";
+                    clearInterval(progressInterval);
+                } else {
+                    document.getElementById("status").innerHTML =
+                        `🔄 ${data.type.toUpperCase()} Scraping ${data.progress}/${data.total}...`;
+                }
+            });
+    }
+    const progressInterval = setInterval(updateProgress, 1000);
+</script>
+{% endblock %}

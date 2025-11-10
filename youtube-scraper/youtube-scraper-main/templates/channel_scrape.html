@@ -1,0 +1,12 @@
+{% extends 'layout.html' %}
+{% block content %}
+<h2>👤 Channel Scraping</h2>
+<form method="post">
+    {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+    <div class="mb-3">
+        <label>Paste Channel or Video URLs (comma-separated):</label>
+        <textarea name="channel_urls" class="form-control" rows="4" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-danger">Start Scraping</button>
+</form>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'layout.html' %}
+{% block content %}
+<h2>🎬 Video Scraping</h2>
+<form method="post">
+    {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+    <div class="mb-3">
+        <label>Input Method:</label><br>
+        <input type="radio" name="mode" value="search" checked> Search Keyword
+        <input type="radio" name="mode" value="url" class="ms-3"> Paste Video URLs
+    </div>
+    <div class="mb-3">
+        <label>Search Keyword or Video URLs:</label>
+        <textarea name="input_data" class="form-control" rows="3" required></textarea>
+    </div>
+    <div class="mb-3">
+        <label>Number of Videos (for search):</label>
+        <input type="number" name="limit" value="5" class="form-control">
+    </div>
+    <button type="submit" class="btn btn-danger">Start Scraping</button>
+</form>
+{% endblock %}
