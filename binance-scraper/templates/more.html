@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ title }}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #111; color: #eee; }
+    .table-dark th { color: #ffc107; }
+    .pagination .page-link { background-color: #222; color: #fff; }
+    .pagination .active .page-link { background-color: #ffc107; color: #000; }
+  </style>
+</head>
+<body>
+<div class="container my-4">
+  <h2 class="text-info">{{ title }}</h2>
+
+  <div class="mb-3 d-flex gap-3">
+    <a href="/download/csv" class="btn btn-outline-warning btn-sm">Download CSV</a>
+    <a href="/download/sqlite" class="btn btn-outline-light btn-sm">Download SQLite</a>
+    <a href="/" class="btn btn-outline-secondary btn-sm">⬅ Back</a>
+  </div>
+
+  <table class="table table-dark table-bordered table-hover">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Price</th>
+        <th>Change %</th>
+        <th>Volume</th>
+        <th>Market Cap</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for coin in coins %}
+      <tr>
+        <td>{{ coin.base }}</td>
+        <td>${{ "%.8f"|format(coin.lastPrice|float if coin.lastPrice is defined else 0) }}</td>
+        <td class="{% if coin.priceChangePercent is defined and coin.priceChangePercent|float >= 0 %}text-success{% else %}text-danger{% endif %}">
+          {% if coin.priceChangePercent is defined %}
+            {{ coin.priceChangePercent }}%
+          {% else %}
+            N/A
+          {% endif %}
+        </td>
+        <td>{{ coin.quoteVolume | format_volume if coin.quoteVolume is defined else 'N/A' }}</td>
+        <td>{{ coin.marketCap | format_market_cap if coin.marketCap is defined else 'N/A' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <nav class="mt-4">
+    <ul class="pagination justify-content-center">
+      {% if page > 1 %}
+      <li class="page-item">
+        <a class="page-link" href="?quote={{ quote }}&page={{ page - 1 }}">«</a>
+      </li>
+      {% endif %}
+      {% for p in range(1, total_pages + 1) %}
+      <li class="page-item {% if p == page %}active{% endif %}">
+        <a class="page-link" href="?quote={{ quote }}&page={{ p }}">{{ p }}</a>
+      </li>
+      {% endfor %}
+      {% if page < total_pages %}
+      <li class="page-item">
+        <a class="page-link" href="?quote={{ quote }}&page={{ page + 1 }}">»</a>
+      </li>
+      {% endif %}
+    </ul>
+  </nav>
+</div>
+</body>
+</html>
