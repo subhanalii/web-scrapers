@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Maps Scraper</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300,400,500,700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #eef2f6; /* Light gray-blue background */
+        }
+        .header {
+            background: linear-gradient(90deg, #4285f4, #34a853); /* Google Blue to Green */
+            color: white;
+            padding: 30px 0;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .header h1 {
+            font-weight: 700;
+            font-size: 2.8rem; /* Larger, more impactful title */
+        }
+        .header .lead {
+            font-weight: 300;
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        .scraper-card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        .form-label {
+            font-weight: 500;
+            color: #34495e; /* Darker label text */
+        }
+        .btn-primary {
+            background-color: #4285f4; /* Google Blue */
+            border-color: #4285f4;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #3367d6; /* Darker blue on hover */
+            border-color: #3367d6;
+            transform: translateY(-2px);
+        }
+        .status-box {
+            margin-bottom: 30px;
+            padding: 18px;
+            border-radius: 8px;
+            font-weight: 500;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            border: none; /* Remove default bootstrap border */
+        }
+        /* Custom status box colors for better branding */
+        .status-box.alert-info { background-color: #e0f2f7; color: #0d6efd; }
+        .status-box.alert-warning { background-color: #fff3e0; color: #ff8c00; } /* Orange-ish warning */
+        .status-box.alert-success { background-color: #e6f7e9; color: #34a853; } /* Google Green success */
+        .status-box.alert-danger { background-color: #ffebee; color: #ea4335; } /* Google Red error */
+
+        .results-section h4 {
+            color: #34495e;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .table-responsive {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden; /* Ensures rounded corners are applied */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+        .table thead th {
+            background-color: #34495e; /* Dark header */
+            color: white;
+            font-weight: 600;
+            border-bottom: none;
+        }
+        .table tbody tr:hover {
+            background-color: #f0f2f5; /* Subtle hover effect */
+        }
+        .btn-success {
+            background-color: #34a853; /* Google Green */
+            border-color: #34a853;
+            transition: all 0.3s ease;
+        }
+        .btn-success:hover {
+            background-color: #2b8e45; /* Darker green on hover */
+            border-color: #2b8e45;
+            transform: translateY(-2px);
+        }
+        /* Map icon styling */
+        .map-icon {
+            font-size: 2.5rem;
+            margin-right: 15px;
+            vertical-align: middle;
+        }
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2rem; }
+            .map-icon { font-size: 2rem; margin-right: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header text-center">
+        <h1><i class="fas fa-map-marker-alt map-icon"></i>Google Maps Scraper</h1>
+        <p class="lead">Uncover valuable business insights from Google Maps</p>
+    </div>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="scraper-card">
+                    <h4 class="mb-4">Configure Your Search Parameters</h4>
+                    <form id="scrape-form" class="row g-4"> <div class="col-md-6">
+                            <label for="query" class="form-label">Search Query:</label>
+                            <input type="text" id="query" name="query" class="form-control form-control-lg" placeholder="e.g., restaurants in London" value="restaurants near me" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="max_results" class="form-label">Max Results:</label>
+                            <input type="number" id="max_results" name="max_results" class="form-control form-control-lg" value="10" min="1" max="50">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="max_pages" class="form-label">Max Pages to Scroll:</label>
+                            <input type="number" id="max_pages" name="max_pages" class="form-control form-control-lg" value="1" min="1" max="5">
+                        </div>
+                        <div class="col-12 mt-5"> <button type="submit" class="btn btn-primary btn-lg w-100" id="scrape-button">
+                                <i class="fas fa-search me-2"></i> Start Scraping
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="status" class="status-box alert alert-info text-center">
+                    Enter your search query and click "Start Scraping" to begin.
+                </div>
+
+                <div id="results" class="mt-5 results-section">
+                    <h4 class="mb-4">Scraped Business Data:</h4>
+                    <div id="download-buttons" class="mb-4 text-center d-none">
+                        <a href="/download/csv" class="btn btn-success btn-lg me-3">
+                            <i class="fas fa-file-csv me-2"></i> Download CSV
+                        </a>
+                        <a href="/download/xlsx" class="btn btn-success btn-lg">
+                            <i class="fas fa-file-excel me-2"></i> Download Excel (XLSX)
+                        </a>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="results-table" class="table table-striped table-hover align-middle">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Address</th>
+                                    <th>Phone</th>
+                                    <th>Website</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            const statusBox = $('#status');
+            const resultsBody = $('#results-table tbody');
+            const downloadButtons = $('#download-buttons');
+            const scrapeButton = $('#scrape-button');
+
+            $('#scrape-form').on('submit', function(e) {
+                e.preventDefault();
+                
+                statusBox.removeClass().addClass('status-box alert alert-warning text-center');
+                statusBox.html('<div class="spinner-border text-primary spinner-border-sm me-2" role="status"></div> <strong>Scraping in progress...</strong> This can take a few minutes. Please do not close this tab.');
+                
+                resultsBody.empty();
+                downloadButtons.addClass('d-none');
+                scrapeButton.prop('disabled', true).html('<div class="spinner-border spinner-border-sm me-2" role="status"></div> Scraping...');
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/',
+                    data: $(this).serialize(),
+                    dataType: 'json',
+                    success: function(response) {
+                        scrapeButton.prop('disabled', false).html('<i class="fas fa-search me-2"></i> Start Scraping');
+
+                        if (response.error) {
+                            statusBox.removeClass().addClass('status-box alert alert-danger text-center');
+                            statusBox.html('<strong>Error:</strong> ' + response.message);
+                            return;
+                        }
+
+                        const data = response;
+                        if (data.length > 0) {
+                            statusBox.removeClass().addClass('status-box alert alert-success text-center');
+                            statusBox.html(`<strong>Success!</strong> Scraped ${data.length} businesses. Ready for download.`);
+                            downloadButtons.removeClass('d-none'); // Show download buttons
+                        } else {
+                            statusBox.removeClass().addClass('status-box alert alert-warning text-center');
+                            statusBox.html('<strong>Warning:</strong> Scrape finished, but returned 0 results. Try a different query or adjust parameters.');
+                            downloadButtons.addClass('d-none'); 
+                        }
+                        
+                        // Populate table
+                        data.forEach(item => {
+                            let websiteLink = (item.website && item.website !== 'N/A' && item.website.startsWith('http')) 
+                                ? `<a href="${item.website}" target="_blank" class="btn btn-sm btn-outline-primary">Visit Site</a>` 
+                                : '-';
+                            
+                            const row = `<tr>
+                                        <td>${item.name || '-'}</td>
+                                        <td>${item.address || '-'}</td>
+                                        <td>${item.phone || '-'}</td>
+                                        <td>${websiteLink}</td>
+                                        </tr>`;
+                            resultsBody.append(row);
+                        });
+                        
+                    },
+                    error: function(xhr, status, error) {
+                        scrapeButton.prop('disabled', false).html('<i class="fas fa-search me-2"></i> Start Scraping');
+                        let errorMessage = 'An unexpected error occurred. Please check the server logs.';
+                        try {
+                            const errorJson = JSON.parse(xhr.responseText);
+                            errorMessage = errorJson.message || errorMessage;
+                        } catch (e) {
+                            // Non-JSON error, use generic message
+                        }
+                        statusBox.removeClass().addClass('status-box alert alert-danger text-center');
+                        statusBox.html('<strong>AJAX Error:</strong> ' + errorMessage);
+                        console.error("AJAX Error:", error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
