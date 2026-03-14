@@ -43,6 +43,10 @@ Scrapes charts and trading signals from TradingView.
 Scrapes business data, addresses, and contact information from Google Maps.  
 [Demo Video](https://youtu.be/2fBVfbRz1sY)
 
+### 8. Amazon Scraper  
+**Folder:** `amazon-scraper`  
+Scrapes deep product data, pricing, media, and sentiment analysis from Amazon.in.  
+[Demo Video](https://youtu.be/8rQzHewzoAE)
 ---
 
 ## How to Use
