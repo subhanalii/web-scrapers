@@ -13,11 +13,6 @@ For demo videos and usage, check my [YouTube channel](https://www.youtube.com/@S
 Scrapes YouTube data such as video titles, links, and statistics.  
 [Demo Video](https://www.youtube.com/watch?v=O8ur10GAEv4)
 
-### 2. Binance Scraper  
-**Folder:** `binance-scraper`  
-Scrapes cryptocurrency data from Binance exchange.  
-[Demo Video](https://www.youtube.com/watch?v=jodY4W_1rNc)
-
 ### 3. DEX Screener Signal Tracker  
 **Folder:** `dexscreener-signal-tracker`  
 Tracks signals from DEX Screener for trading opportunities.  
